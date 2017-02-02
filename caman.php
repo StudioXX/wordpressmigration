@@ -79,7 +79,7 @@ function get_translated_term($term_id, $taxonomy, $language) {
 
     ///////////// LOOP THROUGH ALL POSTS OF A CERTAIN POST TYPE - WORKS ON BOTH LANGUAGES
 
-    $related = get_posts(array(
+    $events = get_posts(array(
         'post_type' => 'events'
         , 'posts_per_page' => 1000000000
         // ,
@@ -91,25 +91,37 @@ function get_translated_term($term_id, $taxonomy, $language) {
         //     )
         // )
     ));
-    if ($related)
-        foreach($related as $relate) {
-            $postid = $relate->ID;
+    if ($events)
+        foreach($events as $event) {
+            $postid = $event->ID;
             // SET ATTACHMENT TO POST
+
+            // $attachment = array(
+            //     "id" => "4088",
+            //     "fields" => array(
+            //         "title" => "guap",
+            //         "caption" => "guapoiii"
+            //     )
+            // );
+            // $attachments = array(
+            //     "my_attachments" => array($attachment)
+            // );
+            // update_post_meta($postid , 'attachments', json_encode( $attachments ));
+
+
+            ////////// INSERT PARTICIPANTS
+            $participant = array(
+                '2135',
+                '2129'
+            );
+
+            update_post_meta($postid , 'participants_names', serialize($participant) );
+
+
+
+
             print_r(get_post_meta($postid));
-            $attachment = array(
-                "id" => "4088",
-                "fields" => array(
-                    "title" => "guap",
-                    "caption" => "guapoiii"
-                )
-            );
-            $attachments = array(
-                "my_attachments" => array($attachment)
-            );
-            update_post_meta($postid , 'attachments', json_encode( $attachments ));
-
-
-            // delete_post_meta($postid, 'attachments');
+            // delete_post_meta($postid, '_participants');
         
             ////////// GET ID OF THE TRANSLATION
             // $translation = icl_object_id($postid, 'events', false);
