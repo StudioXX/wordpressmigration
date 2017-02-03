@@ -80,7 +80,7 @@ function get_translated_term($term_id, $taxonomy, $language) {
     ///////////// LOOP THROUGH ALL POSTS OF A CERTAIN POST TYPE - WORKS ON BOTH LANGUAGES
 
     $events = get_posts(array(
-        'post_type' => 'events'
+        'post_type' => 'matricule'
         , 'posts_per_page' => 1000000000
         // ,
         // 'meta_query' => array(
@@ -109,18 +109,18 @@ function get_translated_term($term_id, $taxonomy, $language) {
             // update_post_meta($postid , 'attachments', json_encode( $attachments ));
 
 
-            ////////// INSERT PARTICIPANTS
-            $participant = array(
-                '2135',
-                '2129'
-            );
+            ////////// INSERT PARTICIPANTS RELATIONSHIP TO EVENTS
+            // $participant = array(
+            //     '2135',
+            //     '2129'
+            // );
 
-            update_post_meta($postid , 'participants_names', serialize($participant) );
-
-
+            // update_post_meta($postid , 'participants_names', serialize($participant) );
 
 
-            print_r(get_post_meta($postid));
+
+            print_r(wp_get_post_tags($postid));
+            // print_r(get_post_meta($postid));
             // delete_post_meta($postid, '_participants');
         
             ////////// GET ID OF THE TRANSLATION

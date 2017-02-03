@@ -20,46 +20,52 @@ function __update_post_meta( $post_id, $field_name, $value = '' )
 
 function my_insert_posts($slice) {
     $output = array();
-
-    $custom_tax = array(
-        'keyword' => $slice['keywords']
-        // ,
-        // 'date_de_debut' => date('2010-02-23 18:57:33'),
-        // 'date_de_fin' => date('2010-02-25 18:57:33')
-    );
  
     // Create original post object
     $my_original_post = array(
-        'post_title'    => $slice['titlefrench'],
-        'post_content'  => $slice['bodyfrench'],
+        'post_title'    => $slice['accession_number'],
+        'post_content'  => $slice['description_fr'],
         'post_status'   => 'publish',
         'post_author'   => 1,
-        'post_type'		=>	'events',
-        'tax_input'    => $custom_tax
+        'post_type'		=>	'matricule'
     );
  
     // Create translation post object
     $my_translated_post = array(
-        'post_title'    => $slice['titleenglish'],
-        'post_content'  => $slice['bodyenglish'],
+        'post_title'    => $slice['accession_number'],
+        'post_content'  => $slice['description'],
         'post_status'   => 'publish',
         'post_author'   => 1,
-        'post_type'		=>	'events',
-        'tax_input'    => $custom_tax
+        'post_type'		=>	'matricule'
     );
+
+    $keywords = $slice['keywords'];
  
     // Insert the 2 posts into the database
     $original_post_id = wp_insert_post( $my_original_post );
     $translated_post_id = wp_insert_post( $my_translated_post );
 
-    __update_post_meta( $original_post_id, 'google_maps_link', 'google map french link here' );
-    __update_post_meta( $translated_post_id, 'google_maps_link', 'google map english link here' );
+    wp_set_post_tags( $original_post_id, $keywords, true );
+    wp_set_post_tags( $translated_post_id, $keywords, true );
 
-    __update_post_meta( $original_post_id, 'date_de_debut', '20100223' );
-    __update_post_meta( $translated_post_id, 'date_de_debut', '20100223' );
+    __update_post_meta( $original_post_id, 'support', $slice['support'] );
+    __update_post_meta( $translated_post_id, 'support', $slice['support'] );
 
-    __update_post_meta( $original_post_id, 'date_de_fin', '20100223' );
-    __update_post_meta( $translated_post_id, 'date_de_fin', '20100223' );
+    __update_post_meta( $original_post_id, 'media', $slice['medium'] );
+    __update_post_meta( $translated_post_id, 'media', $slice['medium'] );
+
+    __update_post_meta( $original_post_id, 'date_matricule', $slice['date'] );
+    __update_post_meta( $translated_post_id, 'date_matricule', $slice['date'] );
+
+    __update_post_meta( $original_post_id, 'physical_description', $slice['physical_description'] );
+    __update_post_meta( $translated_post_id, 'physical_description', $slice['physical_description'] );
+
+    __update_post_meta( $original_post_id, 'note_de_larchiviste', $slice['notes'] );
+    __update_post_meta( $translated_post_id, 'note_de_larchiviste', $slice['notes'] );
+
+    __update_post_meta( $original_post_id, 'forged_title', $slice['title'] );
+    __update_post_meta( $translated_post_id, 'forged_title', $slice['title'] );
+
  
     return $output = array(
         'original' => $original_post_id,
@@ -92,7 +98,7 @@ function element_connect_on_insert($slice) {
     }
 }
 
-    $slices = json_decode(file_get_contents('documents.json'), true);
+    $slices = json_decode(file_get_contents('documentsarray.json'), true);
     if ($slices) { 
         foreach ($slices as $slice) {
             element_connect_on_insert($slice);
