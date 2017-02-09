@@ -34,12 +34,17 @@ require(dirname(__FILE__) . '/../wp-content/plugins/sitepress-multilingual-cms/s
             $postid = $matricule->ID;
             $posttitle = $matricule->post_title;
             // print_r($posttitle);
+            // print_r(get_post_meta($postid));
             // echo '<br>';
             $attachmentsarray = array();
 
+
+
+
+
             foreach($attachments as $attachment) {
                 // $attachmentid = $attachment->ID;
-                // $attachmenttitle = $attachment->post_title;
+                $attachmenttitle = $attachment->post_title;
                 if (strpos($attachmenttitle, $posttitle) !== false) {
                     $itsattachment = array(
                         "id" => $attachment->ID
