@@ -179,6 +179,151 @@ function events_related_participants_update_value( $value, $post_id, $field  ) {
 	// - could also remove_filter() then add_filter() again, but this is simpler
 	$GLOBALS[ $global_name ] = 1;
 	
+  ///////// CREATE TRANSLATION
+  $translated_post = icl_object_id($post_id, $post_type, false, $other_lang);
+
+  //////////////// CREATE RELATIONSHIPS
+	// loop over selected posts and add this $post_id
+	if( is_array($value) ) {
+		foreach( $value as $post_id2 ) {
+			// populate translated_values array with post ids of translations
+      $translated_values[] = icl_object_id($post_id2, $relationship_post_type, false, $other_lang);
+			// load existing related posts
+			$value2 = get_field($other_field, $post_id2, false);
+			
+			// allow for selected posts to not contain a value
+			if( empty($value2) ) {				
+				$value2 = array();
+			}
+					
+			// bail early if the current $post_id is already found in selected post's $value2
+			if( in_array($post_id, $value2) ) continue;
+			
+			// append the current $post_id to the selected post's 'related_posts' value
+			$value2[] = $post_id;
+			// update the selected post's value (use field's key for performance)
+			update_field($other_field_key, $value2, $post_id2);
+		}
+	}
+	
+  ////////// INSERT TRANSLATED VALUES INTO TRANSLATED POST
+  update_post_meta($translated_post, $field_name, serialize($translated_values) );
+
+  //////////////// CREATE RELATIONSHIPS WITH TRANSLATED POST ON TRANSLATED VALUES
+	// loop over selected posts and add this $post_id
+	if( is_array($translated_values) ) {
+		foreach( $translated_values as $post_id3 ) {
+			// load existing related posts
+			$value3 = get_field($other_field, $post_id3, false);
+			
+			// allow for selected posts to not contain a value
+			if( empty($value3) ) {		
+				$value3 = array();
+			}
+					
+			// bail early if the current $post_id is already found in selected post's $value2
+			if( in_array($translated_post, $value3) ) continue;
+			
+			// append the current $post_id to the selected post's 'related_posts' value
+			$value3[] = $translated_post;
+			// update the selected post's value (use field's key for performance)
+			update_field($other_field_key, $value3, $post_id3);
+		}
+	}
+
+
+  ///////////// DELETE RELATIONSHIPS
+	// find posts which have been removed
+	$old_value = get_field($field_name, $post_id, false);
+	
+	if( is_array($old_value) ) {
+		
+		foreach( $old_value as $post_id4 ) {
+			
+			// bail early if this value has not been removed
+			if( is_array($value) && in_array($post_id4, $value) ) continue;
+			
+			
+			// load existing related posts
+			$value4 = get_field($other_field, $post_id4, false);
+			
+
+			// bail early if no value
+			if( empty($value4) ) continue;
+			
+			
+			// find the position of $post_id within $value2 so we can remove it
+			$pos = array_search($post_id, $value4);
+			
+			
+			// remove
+			unset( $value4[ $pos] );
+			
+			
+			// update the un-selected post's value (use field's key for performance)
+			update_field($other_field_key, $value4, $post_id4);
+
+
+      // process translation
+      $post_id4translated = icl_object_id($post_id4, $relationship_post_type, false, $other_lang);
+      
+      // load existing related posts
+			$value4translated = get_field($other_field, $post_id4translated, false);
+			
+			// bail early if no value
+			if( empty($value4translated) ) continue;
+			
+
+			// find the position of $post_id within $value2 so we can remove it
+			$pos2 = array_search($translated_post, $value4translated);
+			
+			// remove
+			unset( $value4translated[ $pos2] );
+			
+			
+			// update the un-selected post's value (use field's key for performance)
+			update_field($other_field_key, $value4translated, $post_id4translated);
+			
+		}
+		
+	}
+
+  ////////// COMPLETE AND EXIT ///////////////////////
+	// reset global varibale to allow this filter to function as per normal
+	$GLOBALS[ $global_name ] = 0;
+	
+	
+	// return
+    return $value;
+    
+}
+
+
+
+
+
+
+function events_related_matricules_update_value( $value, $post_id, $field  ) {
+	
+	// vars
+  $post_type = 'events';
+  $relationship_post_type = 'matricule';
+	$field_name = 'events_related_matricules';
+  $other_field = 'matricules_related_events';
+	$other_field_key = 'field_589df92a96fb3';
+	$global_name = 'is_updating_' . $field_name;
+  $current_lang = ICL_LANGUAGE_CODE;
+	$other_lang = ($current_lang == 'fr' ? 'en' : 'fr');
+  $translated_values = [];
+	
+	// bail early if this filter was triggered from the update_field() function called within the loop below
+	// - this prevents an inifinte loop
+	if( !empty($GLOBALS[ $global_name ]) ) return $value;
+	
+	
+	// set global variable to avoid inifite loop
+	// - could also remove_filter() then add_filter() again, but this is simpler
+	$GLOBALS[ $global_name ] = 1;
 	
   ///////// CREATE TRANSLATION
   $translated_post = icl_object_id($post_id, $post_type, false, $other_lang);
@@ -289,39 +434,150 @@ function events_related_participants_update_value( $value, $post_id, $field  ) {
 		
 	}
 
-  ///////////// DELETE RELATIONSHIPS FROM TRANSLATED VALUES
+  ////////// COMPLETE AND EXIT ///////////////////////
+	// reset global varibale to allow this filter to function as per normal
+	$GLOBALS[ $global_name ] = 0;
+	
+	
+	// return
+    return $value;
+    
+}
+
+
+
+
+
+function matricules_related_events_update_value( $value, $post_id, $field  ) {
+	
+	// vars
+  $post_type = 'matricule';
+  $relationship_post_type = 'events';
+	$field_name = 'matricules_related_events';
+  $other_field = 'events_related_matricules';
+	$other_field_key = 'field_589cdd85da135';
+	$global_name = 'is_updating_' . $field_name;
+  $current_lang = ICL_LANGUAGE_CODE;
+	$other_lang = ($current_lang == 'fr' ? 'en' : 'fr');
+  $translated_values = [];
+	
+	// bail early if this filter was triggered from the update_field() function called within the loop below
+	// - this prevents an inifinte loop
+	if( !empty($GLOBALS[ $global_name ]) ) return $value;
+	
+	
+	// set global variable to avoid inifite loop
+	// - could also remove_filter() then add_filter() again, but this is simpler
+	$GLOBALS[ $global_name ] = 1;
+	
+  ///////// CREATE TRANSLATION
+  $translated_post = icl_object_id($post_id, $post_type, false, $other_lang);
+
+  //////////////// CREATE RELATIONSHIPS
+	// loop over selected posts and add this $post_id
+	if( is_array($value) ) {
+		foreach( $value as $post_id2 ) {
+			// populate translated_values array with post ids of translations
+      $translated_values[] = icl_object_id($post_id2, $relationship_post_type, false, $other_lang);
+			// load existing related posts
+			$value2 = get_field($other_field, $post_id2, false);
+			
+			// allow for selected posts to not contain a value
+			if( empty($value2) ) {				
+				$value2 = array();
+			}
+					
+			// bail early if the current $post_id is already found in selected post's $value2
+			if( in_array($post_id, $value2) ) continue;
+			
+			// append the current $post_id to the selected post's 'related_posts' value
+			$value2[] = $post_id;
+			// update the selected post's value (use field's key for performance)
+			update_field($other_field_key, $value2, $post_id2);
+		}
+	}
+	
+  ////////// INSERT TRANSLATED VALUES INTO TRANSLATED POST
+  update_post_meta($translated_post, $field_name, serialize($translated_values) );
+
+  //////////////// CREATE RELATIONSHIPS WITH TRANSLATED POST ON TRANSLATED VALUES
+	// loop over selected posts and add this $post_id
+	if( is_array($translated_values) ) {
+		foreach( $translated_values as $post_id3 ) {
+			// load existing related posts
+			$value3 = get_field($other_field, $post_id3, false);
+			
+			// allow for selected posts to not contain a value
+			if( empty($value3) ) {		
+				$value3 = array();
+			}
+					
+			// bail early if the current $post_id is already found in selected post's $value2
+			if( in_array($translated_post, $value3) ) continue;
+			
+			// append the current $post_id to the selected post's 'related_posts' value
+			$value3[] = $translated_post;
+			// update the selected post's value (use field's key for performance)
+			update_field($other_field_key, $value3, $post_id3);
+		}
+	}
+
+
+  ///////////// DELETE RELATIONSHIPS
 	// find posts which have been removed
-	// $old_value_translated = get_field($field_name, $translated_post, false);
+	$old_value = get_field($field_name, $post_id, false);
 	
-	// if( is_array($old_value_translated) ) {
-	// 	foreach( $old_value_translated as $post_id5 ) {
-			
-	// 		// bail early if this value has not been removed
-  
-	// 		if( is_array($translated_values) && in_array($post_id5, $translated_values) ) continue;
-			
-	// 		// load existing related posts
-	// 		$value5 = get_field($other_field, $post_id5, false);
-			
-			
-	// 		// bail early if no value
-	// 		if( empty($value5) ) continue;
-			
-			
-	// 		// find the position of $post_id within $value2 so we can remove it
-	// 		$pos = array_search($translated_post, $value5);
-			
-			
-	// 		// remove
-	// 		unset( $value5[ $pos] );
-			
-	// 		// update the un-selected post's value (use field's key for performance)
-	// 		update_field($other_field_key, $value5, $post_id5);
-			
-	// 	}
+	if( is_array($old_value) ) {
 		
-	// }
-	
+		foreach( $old_value as $post_id4 ) {
+			
+			// bail early if this value has not been removed
+			if( is_array($value) && in_array($post_id4, $value) ) continue;
+			
+			
+			// load existing related posts
+			$value4 = get_field($other_field, $post_id4, false);
+			
+
+			// bail early if no value
+			if( empty($value4) ) continue;
+			
+			
+			// find the position of $post_id within $value2 so we can remove it
+			$pos = array_search($post_id, $value4);
+			
+			
+			// remove
+			unset( $value4[ $pos] );
+			
+			
+			// update the un-selected post's value (use field's key for performance)
+			update_field($other_field_key, $value4, $post_id4);
+
+
+      // process translation
+      $post_id4translated = icl_object_id($post_id4, $relationship_post_type, false, $other_lang);
+      
+      // load existing related posts
+			$value4translated = get_field($other_field, $post_id4translated, false);
+			
+			// bail early if no value
+			if( empty($value4translated) ) continue;
+			
+
+			// find the position of $post_id within $value2 so we can remove it
+			$pos2 = array_search($translated_post, $value4translated);
+			
+			// remove
+			unset( $value4translated[ $pos2] );
+			
+			
+			// update the un-selected post's value (use field's key for performance)
+			update_field($other_field_key, $value4translated, $post_id4translated);
+			
+		}
+		
+	}
 
   ////////// COMPLETE AND EXIT ///////////////////////
 	// reset global varibale to allow this filter to function as per normal
@@ -333,6 +589,456 @@ function events_related_participants_update_value( $value, $post_id, $field  ) {
     
 }
 
+
+
+
+
+
+function matricules_related_participants_update_value( $value, $post_id, $field  ) {
+	
+	// vars
+  $post_type = 'matricule';
+  $relationship_post_type = 'events';
+	$field_name = 'matricules_related_participants';
+  $other_field = 'participants_related_matricules';
+	$other_field_key = 'field_589cc53dc3fa0';
+	$global_name = 'is_updating_' . $field_name;
+  $current_lang = ICL_LANGUAGE_CODE;
+	$other_lang = ($current_lang == 'fr' ? 'en' : 'fr');
+  $translated_values = [];
+	
+	// bail early if this filter was triggered from the update_field() function called within the loop below
+	// - this prevents an inifinte loop
+	if( !empty($GLOBALS[ $global_name ]) ) return $value;
+	
+	
+	// set global variable to avoid inifite loop
+	// - could also remove_filter() then add_filter() again, but this is simpler
+	$GLOBALS[ $global_name ] = 1;
+	
+  ///////// CREATE TRANSLATION
+  $translated_post = icl_object_id($post_id, $post_type, false, $other_lang);
+
+  //////////////// CREATE RELATIONSHIPS
+	// loop over selected posts and add this $post_id
+	if( is_array($value) ) {
+		foreach( $value as $post_id2 ) {
+			// populate translated_values array with post ids of translations
+      $translated_values[] = icl_object_id($post_id2, $relationship_post_type, false, $other_lang);
+			// load existing related posts
+			$value2 = get_field($other_field, $post_id2, false);
+			
+			// allow for selected posts to not contain a value
+			if( empty($value2) ) {				
+				$value2 = array();
+			}
+					
+			// bail early if the current $post_id is already found in selected post's $value2
+			if( in_array($post_id, $value2) ) continue;
+			
+			// append the current $post_id to the selected post's 'related_posts' value
+			$value2[] = $post_id;
+			// update the selected post's value (use field's key for performance)
+			update_field($other_field_key, $value2, $post_id2);
+		}
+	}
+	
+  ////////// INSERT TRANSLATED VALUES INTO TRANSLATED POST
+  update_post_meta($translated_post, $field_name, serialize($translated_values) );
+
+  //////////////// CREATE RELATIONSHIPS WITH TRANSLATED POST ON TRANSLATED VALUES
+	// loop over selected posts and add this $post_id
+	if( is_array($translated_values) ) {
+		foreach( $translated_values as $post_id3 ) {
+			// load existing related posts
+			$value3 = get_field($other_field, $post_id3, false);
+			
+			// allow for selected posts to not contain a value
+			if( empty($value3) ) {		
+				$value3 = array();
+			}
+					
+			// bail early if the current $post_id is already found in selected post's $value2
+			if( in_array($translated_post, $value3) ) continue;
+			
+			// append the current $post_id to the selected post's 'related_posts' value
+			$value3[] = $translated_post;
+			// update the selected post's value (use field's key for performance)
+			update_field($other_field_key, $value3, $post_id3);
+		}
+	}
+
+
+  ///////////// DELETE RELATIONSHIPS
+	// find posts which have been removed
+	$old_value = get_field($field_name, $post_id, false);
+	
+	if( is_array($old_value) ) {
+		
+		foreach( $old_value as $post_id4 ) {
+			
+			// bail early if this value has not been removed
+			if( is_array($value) && in_array($post_id4, $value) ) continue;
+			
+			
+			// load existing related posts
+			$value4 = get_field($other_field, $post_id4, false);
+			
+
+			// bail early if no value
+			if( empty($value4) ) continue;
+			
+			
+			// find the position of $post_id within $value2 so we can remove it
+			$pos = array_search($post_id, $value4);
+			
+			
+			// remove
+			unset( $value4[ $pos] );
+			
+			
+			// update the un-selected post's value (use field's key for performance)
+			update_field($other_field_key, $value4, $post_id4);
+
+
+      // process translation
+      $post_id4translated = icl_object_id($post_id4, $relationship_post_type, false, $other_lang);
+      
+      // load existing related posts
+			$value4translated = get_field($other_field, $post_id4translated, false);
+			
+			// bail early if no value
+			if( empty($value4translated) ) continue;
+			
+
+			// find the position of $post_id within $value2 so we can remove it
+			$pos2 = array_search($translated_post, $value4translated);
+			
+			// remove
+			unset( $value4translated[ $pos2] );
+			
+			
+			// update the un-selected post's value (use field's key for performance)
+			update_field($other_field_key, $value4translated, $post_id4translated);
+			
+		}
+		
+	}
+
+  ////////// COMPLETE AND EXIT ///////////////////////
+	// reset global varibale to allow this filter to function as per normal
+	$GLOBALS[ $global_name ] = 0;
+	
+	
+	// return
+    return $value;
+    
+}
+
+
+
+
+
+
+
+function participants_related_events_update_value( $value, $post_id, $field  ) {
+	
+	// vars
+  $post_type = 'participants';
+  $relationship_post_type = 'events';
+	$field_name = 'participants_related_events';
+  $other_field = 'events_related_participants';
+	$other_field_key = 'field_56afc6a7236e2';
+	$global_name = 'is_updating_' . $field_name;
+  $current_lang = ICL_LANGUAGE_CODE;
+	$other_lang = ($current_lang == 'fr' ? 'en' : 'fr');
+  $translated_values = [];
+	
+	// bail early if this filter was triggered from the update_field() function called within the loop below
+	// - this prevents an inifinte loop
+	if( !empty($GLOBALS[ $global_name ]) ) return $value;
+	
+	
+	// set global variable to avoid inifite loop
+	// - could also remove_filter() then add_filter() again, but this is simpler
+	$GLOBALS[ $global_name ] = 1;
+	
+  ///////// CREATE TRANSLATION
+  $translated_post = icl_object_id($post_id, $post_type, false, $other_lang);
+
+  //////////////// CREATE RELATIONSHIPS
+	// loop over selected posts and add this $post_id
+	if( is_array($value) ) {
+		foreach( $value as $post_id2 ) {
+			// populate translated_values array with post ids of translations
+      $translated_values[] = icl_object_id($post_id2, $relationship_post_type, false, $other_lang);
+			// load existing related posts
+			$value2 = get_field($other_field, $post_id2, false);
+			
+			// allow for selected posts to not contain a value
+			if( empty($value2) ) {				
+				$value2 = array();
+			}
+					
+			// bail early if the current $post_id is already found in selected post's $value2
+			if( in_array($post_id, $value2) ) continue;
+			
+			// append the current $post_id to the selected post's 'related_posts' value
+			$value2[] = $post_id;
+			// update the selected post's value (use field's key for performance)
+			update_field($other_field_key, $value2, $post_id2);
+		}
+	}
+	
+  ////////// INSERT TRANSLATED VALUES INTO TRANSLATED POST
+  update_post_meta($translated_post, $field_name, serialize($translated_values) );
+
+  //////////////// CREATE RELATIONSHIPS WITH TRANSLATED POST ON TRANSLATED VALUES
+	// loop over selected posts and add this $post_id
+	if( is_array($translated_values) ) {
+		foreach( $translated_values as $post_id3 ) {
+			// load existing related posts
+			$value3 = get_field($other_field, $post_id3, false);
+			
+			// allow for selected posts to not contain a value
+			if( empty($value3) ) {		
+				$value3 = array();
+			}
+					
+			// bail early if the current $post_id is already found in selected post's $value2
+			if( in_array($translated_post, $value3) ) continue;
+			
+			// append the current $post_id to the selected post's 'related_posts' value
+			$value3[] = $translated_post;
+			// update the selected post's value (use field's key for performance)
+			update_field($other_field_key, $value3, $post_id3);
+		}
+	}
+
+
+  ///////////// DELETE RELATIONSHIPS
+	// find posts which have been removed
+	$old_value = get_field($field_name, $post_id, false);
+	
+	if( is_array($old_value) ) {
+		
+		foreach( $old_value as $post_id4 ) {
+			
+			// bail early if this value has not been removed
+			if( is_array($value) && in_array($post_id4, $value) ) continue;
+			
+			
+			// load existing related posts
+			$value4 = get_field($other_field, $post_id4, false);
+			
+
+			// bail early if no value
+			if( empty($value4) ) continue;
+			
+			
+			// find the position of $post_id within $value2 so we can remove it
+			$pos = array_search($post_id, $value4);
+			
+			
+			// remove
+			unset( $value4[ $pos] );
+			
+			
+			// update the un-selected post's value (use field's key for performance)
+			update_field($other_field_key, $value4, $post_id4);
+
+
+      // process translation
+      $post_id4translated = icl_object_id($post_id4, $relationship_post_type, false, $other_lang);
+      
+      // load existing related posts
+			$value4translated = get_field($other_field, $post_id4translated, false);
+			
+			// bail early if no value
+			if( empty($value4translated) ) continue;
+			
+
+			// find the position of $post_id within $value2 so we can remove it
+			$pos2 = array_search($translated_post, $value4translated);
+			
+			// remove
+			unset( $value4translated[ $pos2] );
+			
+			
+			// update the un-selected post's value (use field's key for performance)
+			update_field($other_field_key, $value4translated, $post_id4translated);
+			
+		}
+		
+	}
+
+  ////////// COMPLETE AND EXIT ///////////////////////
+	// reset global varibale to allow this filter to function as per normal
+	$GLOBALS[ $global_name ] = 0;
+	
+	
+	// return
+    return $value;
+    
+}
+
+
+
+
+
+
+function participants_related_matricules_update_value( $value, $post_id, $field  ) {
+	
+	// vars
+  $post_type = 'participants';
+  $relationship_post_type = 'matricule';
+	$field_name = 'participants_related_matricules';
+  $other_field = 'matricules_related_participants';
+	$other_field_key = 'field_589cc68c0c496';
+	$global_name = 'is_updating_' . $field_name;
+  $current_lang = ICL_LANGUAGE_CODE;
+	$other_lang = ($current_lang == 'fr' ? 'en' : 'fr');
+  $translated_values = [];
+	
+	// bail early if this filter was triggered from the update_field() function called within the loop below
+	// - this prevents an inifinte loop
+	if( !empty($GLOBALS[ $global_name ]) ) return $value;
+	
+	
+	// set global variable to avoid inifite loop
+	// - could also remove_filter() then add_filter() again, but this is simpler
+	$GLOBALS[ $global_name ] = 1;
+	
+  ///////// CREATE TRANSLATION
+  $translated_post = icl_object_id($post_id, $post_type, false, $other_lang);
+
+  //////////////// CREATE RELATIONSHIPS
+	// loop over selected posts and add this $post_id
+	if( is_array($value) ) {
+		foreach( $value as $post_id2 ) {
+			// populate translated_values array with post ids of translations
+      $translated_values[] = icl_object_id($post_id2, $relationship_post_type, false, $other_lang);
+			// load existing related posts
+			$value2 = get_field($other_field, $post_id2, false);
+			
+			// allow for selected posts to not contain a value
+			if( empty($value2) ) {				
+				$value2 = array();
+			}
+					
+			// bail early if the current $post_id is already found in selected post's $value2
+			if( in_array($post_id, $value2) ) continue;
+			
+			// append the current $post_id to the selected post's 'related_posts' value
+			$value2[] = $post_id;
+			// update the selected post's value (use field's key for performance)
+			update_field($other_field_key, $value2, $post_id2);
+		}
+	}
+	
+  ////////// INSERT TRANSLATED VALUES INTO TRANSLATED POST
+  update_post_meta($translated_post, $field_name, serialize($translated_values) );
+
+  //////////////// CREATE RELATIONSHIPS WITH TRANSLATED POST ON TRANSLATED VALUES
+	// loop over selected posts and add this $post_id
+	if( is_array($translated_values) ) {
+		foreach( $translated_values as $post_id3 ) {
+			// load existing related posts
+			$value3 = get_field($other_field, $post_id3, false);
+			
+			// allow for selected posts to not contain a value
+			if( empty($value3) ) {		
+				$value3 = array();
+			}
+					
+			// bail early if the current $post_id is already found in selected post's $value2
+			if( in_array($translated_post, $value3) ) continue;
+			
+			// append the current $post_id to the selected post's 'related_posts' value
+			$value3[] = $translated_post;
+			// update the selected post's value (use field's key for performance)
+			update_field($other_field_key, $value3, $post_id3);
+		}
+	}
+
+
+  ///////////// DELETE RELATIONSHIPS
+	// find posts which have been removed
+	$old_value = get_field($field_name, $post_id, false);
+	
+	if( is_array($old_value) ) {
+		
+		foreach( $old_value as $post_id4 ) {
+			
+			// bail early if this value has not been removed
+			if( is_array($value) && in_array($post_id4, $value) ) continue;
+			
+			
+			// load existing related posts
+			$value4 = get_field($other_field, $post_id4, false);
+			
+
+			// bail early if no value
+			if( empty($value4) ) continue;
+			
+			
+			// find the position of $post_id within $value2 so we can remove it
+			$pos = array_search($post_id, $value4);
+			
+			
+			// remove
+			unset( $value4[ $pos] );
+			
+			
+			// update the un-selected post's value (use field's key for performance)
+			update_field($other_field_key, $value4, $post_id4);
+
+
+      // process translation
+      $post_id4translated = icl_object_id($post_id4, $relationship_post_type, false, $other_lang);
+      
+      // load existing related posts
+			$value4translated = get_field($other_field, $post_id4translated, false);
+			
+			// bail early if no value
+			if( empty($value4translated) ) continue;
+			
+
+			// find the position of $post_id within $value2 so we can remove it
+			$pos2 = array_search($translated_post, $value4translated);
+			
+			// remove
+			unset( $value4translated[ $pos2] );
+			
+			
+			// update the un-selected post's value (use field's key for performance)
+			update_field($other_field_key, $value4translated, $post_id4translated);
+			
+		}
+		
+	}
+
+  ////////// COMPLETE AND EXIT ///////////////////////
+	// reset global varibale to allow this filter to function as per normal
+	$GLOBALS[ $global_name ] = 0;
+	
+	
+	// return
+    return $value;
+    
+}
+
+
+
+
+
 add_filter('acf/update_value/name=events_related_participants', 'events_related_participants_update_value', 10, 3);
+add_filter('acf/update_value/name=events_related_matricules', 'events_related_matricules_update_value', 10, 3);
+
+add_filter('acf/update_value/name=matricules_related_events', 'matricules_related_events_update_value', 10, 3);
+add_filter('acf/update_value/name=matricules_related_participants', 'matricules_related_participants_update_value', 10, 3);
+
+add_filter('acf/update_value/name=participants_related_events', 'participants_related_events_update_value', 10, 3);
+add_filter('acf/update_value/name=participants_related_matricules', 'participants_related_matricules_update_value', 10, 3);
 
 ?>

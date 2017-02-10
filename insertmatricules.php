@@ -79,11 +79,11 @@ function element_connect_on_insert($slice) {
  
     if ( $inserted_post_ids) {
         // https://wpml.org/wpml-hook/wpml_element_type/
-        $wpml_element_type = apply_filters( 'wpml_element_type', 'events' );
+        $wpml_element_type = apply_filters( 'wpml_element_type', 'matricule' );
          
         // get the language info of the original post
         // https://wpml.org/wpml-hook/wpml_element_language_details/
-        $get_language_args = array('element_id' => $inserted_post_ids['original'], 'element_type' => 'events' );
+        $get_language_args = array('element_id' => $inserted_post_ids['original'], 'element_type' => 'matricule' );
         $original_post_language_info = apply_filters( 'wpml_element_language_details', null, $get_language_args );
          
         $set_language_args = array(
