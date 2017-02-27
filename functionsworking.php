@@ -180,6 +180,7 @@ function events_related_participants_update_value( $value, $post_id, $field  ) {
 	
   ///////// CREATE TRANSLATION
   $translated_post = icl_object_id($post_id, $post_type, false, $other_lang);
+	print_r($translated_post);
   //////////////// CREATE RELATIONSHIPS
 	// loop over selected posts and add this $post_id
 	if( is_array($value) ) {
