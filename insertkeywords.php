@@ -11,8 +11,9 @@ require(dirname(__FILE__) . '/../wp-content/plugins/sitepress-multilingual-cms/s
 //     }} else {
 //             echo 'error';
 //         }
+// $sitepress->switch_lang('en', true);
 
-$terms = get_terms( 'keywords', array(
+$terms = get_terms( 'formation_type', array(
     'hide_empty' => false,
 ) );
 

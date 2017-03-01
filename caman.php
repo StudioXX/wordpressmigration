@@ -119,7 +119,7 @@ function get_translated_term($term_id, $taxonomy, $language) {
 
 
 
-            print_r(wp_get_post_tags($postid));
+            print_r(get_post_meta($postid));
             // print_r(get_post_meta($postid));
             // delete_post_meta($postid, '_participants');
         
