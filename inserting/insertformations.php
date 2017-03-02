@@ -1,6 +1,6 @@
 <?php
-require(dirname(__FILE__) . '/../wp-load.php');
-require(dirname(__FILE__) . '/../wp-content/plugins/sitepress-multilingual-cms/sitepress.php');
+require(dirname(__FILE__) . '/../../wp-load.php');
+require(dirname(__FILE__) . '/../../wp-content/plugins/sitepress-multilingual-cms/sitepress.php');
 
 function __update_post_meta( $post_id, $field_name, $value = '' )
     {
@@ -34,7 +34,7 @@ function my_insert_posts($slice) {
         'post_content'  => $slice['bodyfrench'],
         'post_status'   => 'publish',
         'post_author'   => 1,
-        'post_type'		=>	'events',
+        'post_type'		=>	'formations',
         'tax_input'    => $custom_tax
     );
  
@@ -44,7 +44,7 @@ function my_insert_posts($slice) {
         'post_content'  => $slice['bodyenglish'],
         'post_status'   => 'publish',
         'post_author'   => 1,
-        'post_type'		=>	'events',
+        'post_type'		=>	'formations',
         'tax_input'    => $custom_tax
     );
  
@@ -60,6 +60,12 @@ function my_insert_posts($slice) {
 
     __update_post_meta( $original_post_id, 'date_de_fin', '20100223' );
     __update_post_meta( $translated_post_id, 'date_de_fin', '20100223' );
+
+    wp_set_object_terms( $original_post_id, $slice['eventtypefrench'], 'formation_type' );
+    wp_set_object_terms( $translated_post_id, $slice['eventtypeenglish'], 'formation_type' );
+
+    wp_set_object_terms( $original_post_id, $slice['keywordsfrench'], 'keywords' );
+    wp_set_object_terms( $translated_post_id, $slice['keywordsenglish'], 'keywords' );
  
     return $output = array(
         'original' => $original_post_id,
@@ -73,11 +79,11 @@ function element_connect_on_insert($slice) {
  
     if ( $inserted_post_ids) {
         // https://wpml.org/wpml-hook/wpml_element_type/
-        $wpml_element_type = apply_filters( 'wpml_element_type', 'events' );
+        $wpml_element_type = apply_filters( 'wpml_element_type', 'formations' );
          
         // get the language info of the original post
         // https://wpml.org/wpml-hook/wpml_element_language_details/
-        $get_language_args = array('element_id' => $inserted_post_ids['original'], 'element_type' => 'events' );
+        $get_language_args = array('element_id' => $inserted_post_ids['original'], 'element_type' => 'formations' );
         $original_post_language_info = apply_filters( 'wpml_element_language_details', null, $get_language_args );
          
         $set_language_args = array(
@@ -92,7 +98,7 @@ function element_connect_on_insert($slice) {
     }
 }
 
-    $slices = json_decode(file_get_contents('eventspls.json'), true);
+    $slices = json_decode(file_get_contents('formations.json'), true);
     if ($slices) { 
         foreach ($slices as $slice) {
             element_connect_on_insert($slice);

@@ -13,7 +13,7 @@ require(dirname(__FILE__) . '/../wp-content/plugins/sitepress-multilingual-cms/s
 //         }
 // $sitepress->switch_lang('en', true);
 
-$terms = get_terms( 'formation_type', array(
+$terms = get_terms( 'type_event', array(
     'hide_empty' => false,
 ) );
 

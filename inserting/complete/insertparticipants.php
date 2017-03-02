@@ -1,19 +1,7 @@
 <?php
+require(dirname(__FILE__) . '/../../wp-load.php');
+require(dirname(__FILE__) . '/../../wp-content/plugins/sitepress-multilingual-cms/sitepress.php');
 
-require(dirname(__FILE__) . '/../wp-load.php');
-require(dirname(__FILE__) . '/../wp-content/plugins/sitepress-multilingual-cms/sitepress.php');
-// $sitepress->switch_lang('en');
-//     $terms = get_terms([
-//     'taxonomy' => 'type-event',
-//     'hide_empty' => false,
-// ]);
-
-// print_r($terms);
-
-
-
-
-////////// insert post
 function __update_post_meta( $post_id, $field_name, $value = '' )
     {
         if ( empty( $value ) OR ! $value )
@@ -32,20 +20,6 @@ function __update_post_meta( $post_id, $field_name, $value = '' )
 
 function my_insert_posts($slice) {
     $output = array();
-
-    $custom_tax = array(
-        'event_type' => array(2341, 2323, 2323 )
-        // ,
-        // 'date_de_debut' => date('2010-02-23 18:57:33'),
-        // 'date_de_fin' => date('2010-02-25 18:57:33')
-    );
-
-    $custom_tax_eng = array(
-        'event_type' => array(2342, 2327, 2327 )
-        // ,
-        // 'date_de_debut' => date('2010-02-23 18:57:33'),
-        // 'date_de_fin' => date('2010-02-25 18:57:33')
-    );
  
     // Create original post object
     $my_original_post = array(
@@ -53,7 +27,7 @@ function my_insert_posts($slice) {
         'post_content'  => $slice['bodyfrench'],
         'post_status'   => 'publish',
         'post_author'   => 1,
-        'post_type'		=>	'events'
+        'post_type'		=>	'participants'
     );
  
     // Create translation post object
@@ -62,24 +36,21 @@ function my_insert_posts($slice) {
         'post_content'  => $slice['bodyenglish'],
         'post_status'   => 'publish',
         'post_author'   => 1,
-        'post_type'		=>	'events'
+        'post_type'		=>	'participants'
     );
  
     // Insert the 2 posts into the database
     $original_post_id = wp_insert_post( $my_original_post );
     $translated_post_id = wp_insert_post( $my_translated_post );
 
-    __update_post_meta( $original_post_id, 'google_maps_link', 'google map french link here' );
-    __update_post_meta( $translated_post_id, 'google_maps_link', 'google map english link here' );
+    __update_post_meta( $original_post_id, 'migration_related_matricules', $slice['matricules'] );
+    __update_post_meta( $translated_post_id, 'migration_related_matricules', $slice['matricules'] );
 
-    __update_post_meta( $original_post_id, 'date_de_debut', '20100223' );
-    __update_post_meta( $translated_post_id, 'date_de_debut', '20100223' );
+    wp_set_object_terms( $original_post_id, $slice['parttypefr'], 'participant_type' );
+    wp_set_object_terms( $translated_post_id, $slice['parttypeeng'], 'participant_type' );
 
-    __update_post_meta( $original_post_id, 'date_de_fin', '20100223' );
-    __update_post_meta( $translated_post_id, 'date_de_fin', '20100223' );
-
-    wp_set_object_terms( $original_post_id, array(2341, 2323, 2323 ), 'event_type' );
-    wp_set_object_terms( $translated_post_id, array(2342, 2327, 2327 ), 'event_type' );
+    wp_set_object_terms( $original_post_id, $slice['keywordsfrench'], 'keywords' );
+    wp_set_object_terms( $translated_post_id, $slice['keywordsenglish'], 'keywords' );
  
     return $output = array(
         'original' => $original_post_id,
@@ -93,11 +64,11 @@ function element_connect_on_insert($slice) {
  
     if ( $inserted_post_ids) {
         // https://wpml.org/wpml-hook/wpml_element_type/
-        $wpml_element_type = apply_filters( 'wpml_element_type', 'events' );
+        $wpml_element_type = apply_filters( 'wpml_element_type', 'participants' );
          
         // get the language info of the original post
         // https://wpml.org/wpml-hook/wpml_element_language_details/
-        $get_language_args = array('element_id' => $inserted_post_ids['original'], 'element_type' => 'events' );
+        $get_language_args = array('element_id' => $inserted_post_ids['original'], 'element_type' => 'participants' );
         $original_post_language_info = apply_filters( 'wpml_element_language_details', null, $get_language_args );
          
         $set_language_args = array(
@@ -112,7 +83,7 @@ function element_connect_on_insert($slice) {
     }
 }
 
-$slices = json_decode(file_get_contents('eventtest.json'), true);
+    $slices = json_decode(file_get_contents('participants.json'), true);
     if ($slices) { 
         foreach ($slices as $slice) {
             element_connect_on_insert($slice);
@@ -121,3 +92,4 @@ $slices = json_decode(file_get_contents('eventtest.json'), true);
         }
 
 ?>
+

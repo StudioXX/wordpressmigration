@@ -80,7 +80,7 @@ function get_translated_term($term_id, $taxonomy, $language) {
     ///////////// LOOP THROUGH ALL POSTS OF A CERTAIN POST TYPE - WORKS ON BOTH LANGUAGES
 
     $events = get_posts(array(
-        'post_type' => 'matricule'
+        'post_type' => 'participants'
         , 'posts_per_page' => 1000000000
         // ,
         // 'meta_query' => array(
