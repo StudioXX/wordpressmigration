@@ -20,22 +20,13 @@ function __update_post_meta( $post_id, $field_name, $value = '' )
 
 function my_insert_posts($slice) {
     $output = array();
-
-    $custom_tax = array(
-        'keyword' => $slice['keywords']
-        // ,
-        // 'date_de_debut' => date('2010-02-23 18:57:33'),
-        // 'date_de_fin' => date('2010-02-25 18:57:33')
-    );
- 
     // Create original post object
     $my_original_post = array(
         'post_title'    => $slice['titlefrench'],
         'post_content'  => $slice['bodyfrench'],
         'post_status'   => 'publish',
         'post_author'   => 1,
-        'post_type'		=>	'formations',
-        'tax_input'    => $custom_tax
+        'post_type'		=>	'formations'
     );
  
     // Create translation post object
@@ -44,28 +35,39 @@ function my_insert_posts($slice) {
         'post_content'  => $slice['bodyenglish'],
         'post_status'   => 'publish',
         'post_author'   => 1,
-        'post_type'		=>	'formations',
-        'tax_input'    => $custom_tax
+        'post_type'		=>	'formations'
     );
  
+
+    
     // Insert the 2 posts into the database
     $original_post_id = wp_insert_post( $my_original_post );
     $translated_post_id = wp_insert_post( $my_translated_post );
 
-    __update_post_meta( $original_post_id, 'google_maps_link', 'google map french link here' );
-    __update_post_meta( $translated_post_id, 'google_maps_link', 'google map english link here' );
+    $start = $slice['start'];
+    $end = $slice['end'];
 
-    __update_post_meta( $original_post_id, 'date_de_debut', '20100223' );
-    __update_post_meta( $translated_post_id, 'date_de_debut', '20100223' );
+    __update_post_meta( $original_post_id, 'date_de_debut', substr($start, 0, 4) . substr($start, 5, 2) . substr($start, 8, 2));
+    __update_post_meta( $translated_post_id, 'date_de_debut', substr($start, 0, 4) . substr($start, 5, 2) . substr($start, 8, 2));
 
-    __update_post_meta( $original_post_id, 'date_de_fin', '20100223' );
-    __update_post_meta( $translated_post_id, 'date_de_fin', '20100223' );
+    __update_post_meta( $original_post_id, 'date_de_fin', substr($end, 0, 4) . substr($end, 5, 2) . substr($end, 8, 2));
+    __update_post_meta( $translated_post_id, 'date_de_fin', substr($end, 0, 4) . substr($end, 5, 2) . substr($end, 8, 2));
+
+    __update_post_meta( $original_post_id, 'migration_related_matricules', $slice['allmatricules']);
+    __update_post_meta( $translated_post_id, 'migration_related_matricules', $slice['allmatricules']);
+
+    __update_post_meta( $original_post_id, 'migration_related_participants', $slice['participants']);
+    __update_post_meta( $translated_post_id, 'migration_related_participants', $slice['participants']);
+
 
     wp_set_object_terms( $original_post_id, $slice['eventtypefrench'], 'formation_type' );
     wp_set_object_terms( $translated_post_id, $slice['eventtypeenglish'], 'formation_type' );
 
     wp_set_object_terms( $original_post_id, $slice['keywordsfrench'], 'keywords' );
     wp_set_object_terms( $translated_post_id, $slice['keywordsenglish'], 'keywords' );
+
+    wp_set_object_terms( $original_post_id, $slice['specialprojectstaxfrench'], 'special_projects' );
+    wp_set_object_terms( $translated_post_id, $slice['specialprojectstaxenglish'], 'special_projects' );
  
     return $output = array(
         'original' => $original_post_id,
